@@ -2,420 +2,267 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#070b18">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>NEW SUPERHERO</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#070b18;font-family:Arial,sans-serif;touch-action:none;user-select:none}
-canvas{display:block;width:100%;height:100%}
-#hud{position:absolute;top:env(safe-area-inset-top,8px);left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none}
-.box{background:#091323df;border:1px solid #36d9ff65;border-radius:10px;padding:8px 11px;color:white;font-size:12px;box-shadow:0 0 15px #00baff16}
-#healthbar{height:6px;width:100px;background:#26334b;margin-top:5px;border-radius:9px;overflow:hidden}
-#health{height:100%;width:100%;background:#ff426e;transition:width .2s}
-#mission{position:absolute;top:68px;left:10px;max-width:calc(100% - 20px);color:#b8eaff;font-size:11px;letter-spacing:1px;text-shadow:0 0 10px #00cfff;pointer-events:none}
-#controls{position:absolute;left:0;right:0;bottom:max(15px,env(safe-area-inset-bottom));display:flex;justify-content:space-between;align-items:end;padding:0 13px;pointer-events:none}
-.group{display:flex;gap:9px;pointer-events:auto}
-button{font-family:Arial,sans-serif}
-.ctrl{width:56px;height:56px;border-radius:16px;border:1px solid #8bdfff9c;background:#101f36d9;color:#e8faff;font-size:23px;font-weight:bold;box-shadow:inset 0 0 15px #00cfff12,0 0 15px #00cfff16;touch-action:none}
-.ctrl:active,.ctrl.down{background:#147d9b;color:white}
-#fire{border-color:#ff6388;background:#46182fdc}
-#blast{border-color:#47dfff;background:#10365cde}
-#overlay{position:absolute;inset:0;background:linear-gradient(120deg,#060b18f5,#0c1830ef 55%,#10152af5);display:flex;align-items:center;justify-content:center;padding:22px}
-.dialog{width:100%;max-width:440px;border:1px solid #3b6582;border-radius:19px;padding:23px;background:linear-gradient(145deg,#111f37,#080e1c);box-shadow:0 0 50px #00aaff16;color:white}
-.eyebrow{font-size:11px;color:#5ce5ff;letter-spacing:3px}
-.dialog h1{font-size:clamp(30px,9vw,46px);line-height:1;margin:13px 0;color:#f2f8ff;text-shadow:0 0 22px #00cfff80}
-.dialog h1 span{color:#43dfff}
-.dialog p{color:#bdcce0;line-height:1.65;font-size:14px}
-.primary{width:100%;padding:15px;border:0;border-radius:10px;background:linear-gradient(90deg,#29c9ee,#7b87ff);color:#071020;font-weight:900;font-size:15px;margin-top:12px}
-.secondary{width:100%;padding:12px;border:1px solid #44607e;border-radius:10px;background:#13233a;color:white;margin-top:9px}
-#subtitle{font-size:11px;letter-spacing:2px;color:#8da9c8}
-#toast{position:absolute;top:45%;left:10%;width:80%;text-align:center;color:#a9f4ff;font-size:13px;letter-spacing:1px;text-shadow:0 0 15px #00cfff;pointer-events:none}
-@media(min-width:700px){.ctrl{width:65px;height:65px}#controls{padding:0 30px}.box{font-size:14px}}
+body{margin:0;background:#080b18;color:white;font-family:Arial;overflow:hidden;touch-action:none}
+canvas{display:block;width:100vw;height:100dvh}
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:#080b18eF}
+.hidden{display:none!important}
+.panel{width:min(500px,100%);padding:26px;background:#101a35;border:2px solid #52f6ff;box-shadow:6px 6px #ff3e81}
+h1{font-size:clamp(42px,10vw,68px);line-height:.9;margin:15px 0;text-shadow:4px 4px #ff3e81}
+h1 span{color:#52f6ff}
+p{color:#c6d4ef;line-height:1.5;font-size:14px}
+button{background:#182442;color:white;border:1px solid #52f6ff;padding:13px;font-weight:bold;touch-action:manipulation}
+.primary{background:#52f6ff;color:#08101b}
+.buttons{display:grid;gap:10px;margin-top:20px}
+#hud{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;pointer-events:none;font-size:11px;font-weight:bold}
+.bar{height:9px;width:130px;max-width:38vw;background:#303750;margin:4px 0 7px}
+.fill{height:100%;width:100%;background:#ff3e81}
+#energy{background:#52f6ff}
+#objective{text-align:right;max-width:45vw;color:#52f6ff}
+#dialogue{position:fixed;bottom:120px;left:10px;right:10px;padding:12px;background:#101a35ee;border-left:4px solid #ff3e81;font-size:13px;line-height:1.4}
+#controls{position:fixed;bottom:12px;left:0;right:0;display:flex;justify-content:space-between;padding:0 10px;gap:5px}
+.group{display:flex;gap:5px;align-items:end}
+.touch{width:48px;height:49px;padding:0;border-radius:12px;background:#101a35ee;font-size:19px}
+.attack{border-color:#ff3e81}.power{border-color:#52f6ff}
+#pauseButton{position:fixed;top:12px;right:12px;z-index:3;padding:8px}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
-<div id="hud">
-  <div class="box">
-    <div>VITALS <b id="hpnum">100</b>%</div>
-    <div id="healthbar"><div id="health"></div></div>
-  </div>
-  <div class="box">CREDITS <b id="credits">000</b> ◈</div>
-  <div class="box">ENERGY <b id="energy">100</b>%</div>
+
+<div id="menu" class="screen">
+<div class="panel">
+<div style="letter-spacing:4px;color:#52f6ff;font-size:11px">A COMIC BOOK ORIGIN</div>
+<h1>NEW<br><span>SUPER</span>HERO</h1>
+<p>Miasto pogrąża się w chaosie. Zwykły nastolatek odkrywa tajemniczą moc. Zostań bohaterem, pokonaj gangi i odkryj, kto stoi za atakami.</p>
+<div class="buttons">
+<button class="primary" id="start">▶ NOWA GRA</button>
+<button id="continue">KONTYNUUJ</button>
+<button id="how">STEROWANIE</button>
 </div>
-<div id="mission">CHAPTER 01 / NEON DISTRICT</div>
-<div id="toast"></div>
-<div id="controls">
-  <div class="group">
-    <button class="ctrl" id="left">◀</button>
-    <button class="ctrl" id="right">▶</button>
-  </div>
-  <div class="group">
-    <button class="ctrl" id="jump">↑</button>
-    <button class="ctrl" id="fire">✦</button>
-    <button class="ctrl" id="blast">ϟ</button>
-  </div>
+<p style="font-size:10px">WASD / strzałki — ruch · J — atak · K — moc · SPACJA — unik</p>
+</div></div>
+
+<div id="pause" class="screen hidden"><div class="panel">
+<h1>PAUZA</h1>
+<div class="buttons"><button class="primary" id="resume">WRÓĆ DO GRY</button><button id="restart">ZACZNIJ OD NOWA</button><button id="menuBtn">MENU GŁÓWNE</button></div>
+</div></div>
+
+<div id="ending" class="screen hidden"><div class="panel">
+<h1><span>BOHATER</span><br>POWSTAŁ</h1>
+<p>Uratowałeś miasto! Ale gdzieś w ciemności ktoś obserwuje każdy twój ruch...</p>
+<div class="buttons"><button class="primary" id="again">GRAJ PONOWNIE</button><button id="endingMenu">MENU</button></div>
+</div></div>
+
+<div id="hud" class="hidden">
+<div><div>ZDROWIE</div><div class="bar"><div class="fill" id="hp"></div></div><div>MOC</div><div class="bar"><div class="fill" id="energy"></div></div></div>
+<div id="objective">MISJA 1<br>Pokonaj przeciwników</div>
 </div>
-<div id="overlay">
-  <div class="dialog">
-    <div class="eyebrow">NOUVEK STUDIO PRESENTS</div>
-    <h1>NEW<br><span>SUPERHERO</span></h1>
-    <div id="subtitle">PROTOCOL: AWAKENING</div>
-    <p id="dialogtext">23:48 — NEON CITY<br><br>Systemy miejskie zostały przejęte przez nieznaną organizację. Roboty ochronne atakują mieszkańców. Twój eksperymentalny kombinezon właśnie się uruchomił.</p>
-    <p id="dialogextra">Twoja misja: przedostań się przez dzielnicę, pokonaj maszyny i odkryj, kto stoi za atakiem.</p>
-    <button class="primary" id="continue">ROZPOCZNIJ MISJĘ →</button>
-    <button class="secondary" id="resume" style="display:none">WRÓĆ DO GRY</button>
-  </div>
+<button id="pauseButton" class="hidden">Ⅱ</button>
+<div id="dialogue" class="hidden"></div>
+
+<div id="controls" class="hidden">
+<div class="group">
+<button class="touch" data-key="left">◀</button>
+<button class="touch" data-key="right">▶</button>
 </div>
+<div class="group">
+<button class="touch" data-action="dodge">↗<small>UNIK</small></button>
+<button class="touch attack" data-action="attack">✊<small>ATAK</small></button>
+<button class="touch power" data-action="power">⚡<small>MOC</small></button>
+</div></div>
+
 <script>
-(()=>{
-"use strict";
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
 const $=id=>document.getElementById(id);
-let W=innerWidth,H=innerHeight,D=1,ground,cam=0,last=0,clock=0;
-let running=false,dialogue=false,ended=false,chapter=0;
-let credits=0,energy=100,toastTimer=0,shake=0;
-const input={left:false,right:false};
-const worldWidth=3000;
-let hero,enemies,bullets,particles,pickups,platforms,buildings,stars;
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function resize(){
- W=innerWidth;H=innerHeight;D=Math.min(devicePixelRatio||1,2);
- canvas.width=Math.floor(W*D);canvas.height=Math.floor(H*D);
- ctx.setTransform(D,0,0,D,0,0);
- ground=H-83;
- if(hero){hero.y=Math.min(hero.y,ground-hero.h);buildMap();}
+let W=innerWidth,H=innerHeight,scale=1;
+function resize(){W=innerWidth;H=innerHeight;canvas.width=W*devicePixelRatio;canvas.height=H*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}
+addEventListener('resize',resize);resize();
+
+let state='menu',hero, enemies=[],shots=[],particles=[],keys={},camera=0;
+let chapter=1,kills=0,frame=0,dialogTimer=0,dialogText='',shake=0;
+const worldWidth=2500;
+const rand=(a,b)=>Math.random()*(b-a)+a;
+function newHero(){return{x:90,y:0,vx:0,vy:0,hp:100,energy:100,face:1,ground:true,attack:0,dodge:0,invul:0,anim:0}}
+function message(t,n=180){dialogText=t;dialogTimer=n;$('dialogue').textContent=t;$('dialogue').classList.remove('hidden')}
+function showGame(){['menu','pause','ending'].forEach(x=>$(x).classList.add('hidden'));$('hud').classList.remove('hidden');$('controls').classList.remove('hidden');$('pauseButton').classList.remove('hidden')}
+function startGame(load=false){
+hero=newHero();enemies=[];shots=[];particles=[];chapter=1;kills=0;camera=0;
+if(load){try{const s=JSON.parse(localStorage.getItem('nsh-save'));if(s){hero.x=s.x||90;chapter=s.chapter||1;kills=s.kills||0}}catch(e){}}
+spawnWave();state='playing';showGame();message('ROZDZIAŁ 1: PIERWSZA ISKRA. Pokonaj gang i dotrzyj do końca ulicy!',240);
 }
-addEventListener("resize",resize);
-function buildMap(){
- platforms=[
- {x:300,y:ground-120,w:160,h:18},
- {x:565,y:ground-190,w:150,h:18},
- {x:840,y:ground-135,w:180,h:18},
- {x:1140,y:ground-225,w:180,h:18},
- {x:1480,y:ground-145,w:190,h:18},
- {x:1810,y:ground-210,w:180,h:18},
- {x:2110,y:ground-130,w:180,h:18},
- {x:2440,y:ground-195,w:210,h:18}
- ];
+function spawnWave(){
+enemies=[];
+let count=chapter===3?5:4+chapter;
+for(let i=0;i<count;i++)enemies.push({x:hero.x+380+i*rand(100,170),y:0,hp:chapter===3?65:30+chapter*10,max:chapter===3?65:30+chapter*10,speed:rand(.6,1.1)+chapter*.15,attack:0,flash:0,boss:chapter===3&&i===count-1});
 }
-function reset(){
- credits=0;energy=100;chapter=0;cam=0;clock=0;ended=false;
- hero={x:90,y:ground-67,w:34,h:67,vx:0,vy:0,face:1,grounded:false,hp:100,inv:0,anim:0,attack:0};
- enemies=[];
- const specs=[
- [420,2],[640,2],[920,3],[1260,3],[1570,3],[1890,3],[2190,4],[2520,4]
- ];
- specs.forEach((s,i)=>enemies.push({x:s[0],y:ground-47,w:35,h:47,hp:s[1],max:s[1],alive:true,dir:i%2?1:-1,base:s[0],range:45,anim:0,hit:0}));
- enemies.push({x:2760,y:ground-84,w:57,h:84,hp:12,max:12,alive:true,dir:-1,base:2760,range:20,boss:true,anim:0,hit:0});
- bullets=[];particles=[];pickups=[];buildMap();
- for(let i=0;i<32;i++)pickups.push({x:180+i*84,y:ground-24-(i%4)*16,taken:false});
- buildings=[];
- for(let i=0;i<45;i++)buildings.push({x:i*100,y:0,w:60+(i*37%42),h:100+(i*71%180),seed:i});
- stars=[];
- for(let i=0;i<70;i++)stars.push({x:(i*137)%3000,y:(i*47)%(Math.max(100,H*.55)),r:.5+(i%3)*.5});
+function save(){try{localStorage.setItem('nsh-save',JSON.stringify({x:hero.x,chapter,kills}))}catch(e){}}
+function endGame(){state='ending';$('ending').classList.remove('hidden');$('hud').classList.add('hidden');$('controls').classList.add('hidden');$('pauseButton').classList.add('hidden');save()}
+function menu(){state='menu';$('menu').classList.remove('hidden');$('pause').classList.add('hidden');$('ending').classList.add('hidden');$('hud').classList.add('hidden');$('controls').classList.add('hidden');$('pauseButton').classList.add('hidden');$('dialogue').classList.add('hidden')}
+function pause(){if(state==='playing'){state='pause';$('pause').classList.remove('hidden')}else if(state==='pause'){state='playing';$('pause').classList.add('hidden')}}
+$('start').onclick=()=>startGame(false);
+$('continue').onclick=()=>startGame(true);
+$('resume').onclick=pause;
+$('restart').onclick=()=>startGame(false);
+$('menuBtn').onclick=menu;
+$('endingMenu').onclick=menu;
+$('again').onclick=()=>startGame(false);
+$('pauseButton').onclick=pause;
+$('how').onclick=()=>alert('PC: A/D lub strzałki — ruch, J — atak, K — supermoc, spacja — unik. Telefon: przyciski na dole ekranu.');
+
+function action(a){
+if(state!=='playing')return;
+if(a==='attack')attack();
+if(a==='power')power();
+if(a==='dodge'&&hero.dodge<=0){hero.dodge=18;hero.invul=20;hero.vx=hero.face*9}
 }
-function say(title,text,extra,button="KONTYNUUJ →"){
- running=false;dialogue=true;
- $("subtitle").textContent=title;
- $("dialogtext").innerHTML=text;
- $("dialogextra").textContent=extra;
- $("continue").textContent=button;
- $("resume").style.display="none";
- $("overlay").style.display="flex";
-}
-function startGame(){
- $("overlay").style.display="none";
- dialogue=false;running=true;last=performance.now();
- requestAnimationFrame(loop);
-}
-$("continue").onclick=()=>{
- if(ended){reset();say("PROTOCOL: AWAKENING","23:48 — NEON CITY<br><br>Wrogie maszyny przejęły ulice. Twój kombinezon jest gotowy.","Pokonaj roboty i dotrzyj do źródła sygnału.","ROZPOCZNIJ MISJĘ →");return}
- if(chapter===0){
- chapter=1;startGame();showToast("OBJECTIVE: ELIMINATE HOSTILE UNITS");
- }else if(chapter===1){
- chapter=2;startGame();showToast("INCOMING TRANSMISSION");
- }else if(chapter===2){
- chapter=3;startGame();showToast("BOSS ENCOUNTER: SENTINEL X");
- }else if(chapter===3){
- chapter=4;startGame();showToast("MISSION COMPLETE");
- }
-};
-$("resume").onclick=startGame;
-function showToast(t){$("toast").textContent=t;toastTimer=2.8}
-function updateHud(){
- $("hpnum").textContent=Math.ceil(hero.hp);
- $("health").style.width=hero.hp+"%";
- $("credits").textContent=String(credits).padStart(3,"0");
- $("energy").textContent=Math.floor(energy);
- $("mission").textContent=chapter===1?"CHAPTER 01 / NEON DISTRICT":chapter===2?"CHAPTER 02 / UNKNOWN SIGNAL":chapter===3?"BOSS / SENTINEL X":chapter===4?"MISSION COMPLETE":"NEON CITY";
-}
-function bind(id,down,up){
- const b=$(id);
- b.addEventListener("pointerdown",e=>{e.preventDefault();b.setPointerCapture(e.pointerId);b.classList.add("down");down()});
- const release=e=>{if(e)e.preventDefault();b.classList.remove("down");if(up)up()};
- b.addEventListener("pointerup",release);b.addEventListener("pointercancel",release);
- b.addEventListener("lostpointercapture",()=>{b.classList.remove("down");if(up)up()});
-}
-bind("left",()=>input.left=true,()=>input.left=false);
-bind("right",()=>input.right=true,()=>input.right=false);
-bind("jump",()=>{if(running&&hero.grounded){hero.vy=-610;hero.grounded=false;burst(hero.x+17,hero.y+hero.h,"#4beaff",7)}});
-bind("fire",shoot);
-bind("blast",blast);
-addEventListener("keydown",e=>{
- if(["ArrowLeft","ArrowRight","ArrowUp"," ","z","x"].includes(e.key))e.preventDefault();
- if(e.key==="ArrowLeft"||e.key==="a")input.left=true;
- if(e.key==="ArrowRight"||e.key==="d")input.right=true;
- if((e.key==="ArrowUp"||e.key===" ")&&running&&hero.grounded){hero.vy=-610;hero.grounded=false}
- if(e.key==="z")shoot();
- if(e.key==="x")blast();
- if(e.key==="Escape"&&running){say("PAUSED","Gra wstrzymana.","Wróć do walki, gdy będziesz gotowy.","WRÓĆ DO GRY");$("continue").onclick=startGame}
+document.querySelectorAll('[data-key]').forEach(b=>{
+const k=b.dataset.key;
+b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,e=>{keys[k]=false}));
 });
-addEventListener("keyup",e=>{
- if(e.key==="ArrowLeft"||e.key==="a")input.left=false;
- if(e.key==="ArrowRight"||e.key==="d")input.right=false;
+document.querySelectorAll('[data-action]').forEach(b=>{
+b.addEventListener('pointerdown',e=>{e.preventDefault();action(b.dataset.action)});
 });
-function burst(x,y,color,n){
- for(let i=0;i<n;i++){
-  const a=Math.random()*Math.PI*2,s=50+Math.random()*240;
-  particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.25+Math.random()*.5,max:.75,color,size:2+Math.random()*3});
- }
+addEventListener('keydown',e=>{
+keys[e.key.toLowerCase()]=true;
+if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault();
+if(e.repeat)return;
+if(e.key.toLowerCase()==='j')attack();
+if(e.key.toLowerCase()==='k')power();
+if(e.key===' ')action('dodge');
+if(e.key==='Escape'||e.key.toLowerCase()==='p')pause();
+});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+
+function attack(){
+if(state!=='playing'||hero.attack>0)return;
+hero.attack=17;
+let hit=false;
+enemies.forEach(e=>{
+if(Math.abs(e.x-hero.x)<95&&Math.abs(e.y-hero.y)<80){
+e.hp-=25;e.flash=8;e.x+=hero.face*25;hit=true;
+burst(e.x,e.y-35,'#ff3e81',9);
+}});
+if(hit){hero.energy=Math.min(100,hero.energy+8);shake=5}
 }
-function shoot(){
- if(!running||hero.attack>0)return;
- if(energy<8){showToast("ENERGY LOW");return}
- energy-=8;hero.attack=.22;
- bullets.push({x:hero.x+hero.w/2+hero.face*25,y:hero.y+26,vx:hero.face*610,life:1.5,r:6});
- burst(hero.x+hero.w/2+hero.face*23,hero.y+26,"#43e8ff",4);
+function power(){
+if(state!=='playing'||hero.energy<30)return;
+hero.energy-=30;hero.attack=12;shake=9;
+enemies.forEach(e=>{if(Math.abs(e.x-hero.x)<260){e.hp-=45;e.flash=10;burst(e.x,e.y-30,'#52f6ff',18)}});
+burst(hero.x,hero.y-40,'#52f6ff',28);
 }
-function blast(){
- if(!running||hero.attack>0)return;
- if(energy<35){showToast("NOT ENOUGH ENERGY");return}
- energy-=35;hero.attack=.5;shake=.16;
- burst(hero.x+hero.w/2,hero.y+hero.h/2,"#4deaff",30);
- for(const e of enemies){
-  if(e.alive&&Math.abs(e.x-hero.x)<205){
-   e.hp-=4;e.hit=.22;
-   burst(e.x+e.w/2,e.y+e.h/2,"#7df4ff",12);
-   if(e.hp<=0)defeat(e);
-  }
- }
+function burst(x,y,color,n){for(let i=0;i<n;i++)particles.push({x,y,vx:rand(-4,4),vy:rand(-5,3),life:rand(12,28),color,size:rand(2,6)})}
+
+function update(){
+frame++;
+if(state!=='playing')return;
+if(keys.a||keys.arrowleft||keys.left){hero.vx-=.65;hero.face=-1}
+if(keys.d||keys.arrowright||keys.right){hero.vx+=.65;hero.face=1}
+if((keys.w||keys.arrowup)&&hero.ground){hero.vy=-11;hero.ground=false}
+if(keys.j)attack();
+if(keys.k)power();
+hero.vx*=.82;hero.vx=Math.max(-5,Math.min(5,hero.vx));
+hero.x+=hero.vx;hero.x=Math.max(30,Math.min(worldWidth-50,hero.x));
+hero.vy+=.55;hero.y+=hero.vy;
+if(hero.y>0){hero.y=0;hero.vy=0;hero.ground=true}
+if(hero.attack>0)hero.attack--;
+if(hero.dodge>0)hero.dodge--;
+if(hero.invul>0)hero.invul--;
+if(hero.energy<100)hero.energy+=.035;
+enemies.forEach(e=>{
+if(e.hp<=0)return;
+let d=hero.x-e.x;
+if(Math.abs(d)>40)e.x+=Math.sign(d)*e.speed;
+if(Math.abs(d)<47&&e.attack<=0&&hero.invul<=0){
+hero.hp-=e.boss?12:7;hero.invul=35;e.attack=55;hero.vx=Math.sign(d)*-5;shake=7;
 }
-function defeat(e){
- if(!e.alive)return;
- e.alive=false;credits+=e.boss?100:15;
- for(let i=0;i<(e.boss?24:10);i++)burst(e.x+e.w/2,e.y+e.h/2,e.boss?"#ff4a85":"#43e8ff",1);
- if(e.boss){
-  chapter=4;updateHud();
-  say("MISSION COMPLETE","SENTINEL X — OFFLINE<br><br>Ostatni robot upada. Miasto odzyskuje zasilanie, a na ekranie pojawia się zaszyfrowana wiadomość: „To był tylko test”.","Odblokowano 100 kredytów. Historia będzie kontynuowana w następnym rozdziale.","ZAGRAJ PONOWNIE");
-  ended=true;
- }
+if(e.attack>0)e.attack--;
+if(e.flash>0)e.flash--;
+});
+let alive=enemies.filter(e=>e.hp>0).length;
+kills=enemies.length-alive;
+if(alive===0){
+if(chapter<3){chapter++;hero.x+=100;spawnWave();message(chapter===2?'ROZDZIAŁ 2: ZASADZKA! Wrogowie są silniejsi.':'ROZDZIAŁ 3: OSTATNI BOSS!',220);save()}
+else{endGame();return}
 }
-function hurt(n){
- if(hero.inv>0)return;
- hero.hp=Math.max(0,hero.hp-n);hero.inv=.8;shake=.2;
- burst(hero.x+17,hero.y+25,"#ff4b78",12);
- if(hero.hp<=0){
-  say("SYSTEM FAILURE","KOMBINEZON WYŁĄCZONY<br><br>Straciłeś wszystkie punkty życia.","Spróbuj ponownie. Wykorzystaj ataki energetyczne i skoki, aby unikać wrogów.","SPRÓBUJ PONOWNIE");
-  ended=true;
- }
+if(hero.hp<=0){hero.hp=100;hero.x=Math.max(80,hero.x-180);enemies.forEach(e=>e.hp=Math.max(1,e.hp));message('Zostałeś powalony, ale jeszcze nie przegrana. Spróbuj ponownie!',160)}
+camera+=(Math.max(0,hero.x-W*.35)-camera)*.09;
+camera=Math.max(0,Math.min(worldWidth-W,camera));
+particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.12;p.life--});
+particles=particles.filter(p=>p.life>0);
+if(dialogTimer>0)dialogTimer--;else $('dialogue').classList.add('hidden');
+$('hp').style.width=hero.hp+'%';$('energy').style.width=hero.energy+'%';
+$('objective').innerHTML='ROZDZIAŁ '+chapter+'<br>POZOSTALI WROGOWIE: '+alive;
+if(frame%180===0)save();
 }
-function overlap(a,b){
- return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
+function drawCity(){
+let ground=H*.78;
+rect(0,0,W,H,'#0b1028');
+let glow=ctx.createRadialGradient(W*.65,H*.25,10,W*.65,H*.25,W*.65);
+glow.addColorStop(0,'#243d70');glow.addColorStop(1,'#0b1028');ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);
+for(let layer=0;layer<3;layer++){
+let bw=70+layer*35,offset=-(camera*(.12+layer*.13))%bw;
+for(let x=offset-bw;x<W+bw;x+=bw){
+let h=90+((Math.abs(Math.floor((x+camera)/bw)*37+layer*73))%150);
+rect(x,ground-h,bw-5,h,['#141e3b','#192544','#202b4b'][layer]);
+for(let wy=ground-h+12;wy<ground-10;wy+=19)for(let wx=x+10;wx<x+bw-12;wx+=17)if((Math.floor(wx+wy)+layer)%3!==0)rect(wx,wy,5,7,(Math.floor(wx+wy)%2?'#53dbe8':'#f3bb61'));
+if(layer===2&&Math.floor(x)%4===0){rect(x+8,ground-h-22,32,20,'#ff3e81');rect(x+11,ground-h-18,26,3,'#fff')}
+}}
+rect(0,ground,W,H-ground,'#171d30');rect(0,ground,W,5,'#52f6ff');
+for(let x=-(camera%100);x<W;x+=100){rect(x,ground+35,45,2,'#38405a')}
+return ground;
 }
-function update(dt){
- if(!running)return;
- dt=Math.min(dt,.033);clock+=dt;
- hero.inv=Math.max(0,hero.inv-dt);hero.attack=Math.max(0,hero.attack-dt);
- energy=Math.min(100,energy+9*dt);
- hero.vx=0;
- if(input.left){hero.vx=-250;hero.face=-1}
- if(input.right){hero.vx=250;hero.face=1}
- hero.x=clamp(hero.x+hero.vx*dt,0,worldWidth-hero.w);
- hero.vy+=1450*dt;
- const oldY=hero.y;
- hero.y+=hero.vy*dt;hero.grounded=false;
- if(hero.y+hero.h>=ground&&hero.vy>=0){hero.y=ground-hero.h;hero.vy=0;hero.grounded=true}
- for(const p of platforms){
-  if(hero.x+hero.w>p.x&&hero.x<p.x+p.w&&oldY+hero.h<=p.y+8&&hero.y+hero.h>=p.y&&hero.vy>=0){
-   hero.y=p.y-hero.h;hero.vy=0;hero.grounded=true;
-  }
- }
- hero.anim+=Math.abs(hero.vx)*dt*.035;
- for(const e of enemies){
-  if(!e.alive)continue;
-  e.anim+=dt;e.hit=Math.max(0,e.hit-dt);
-  const dx=(hero.x+hero.w/2)-(e.x+e.w/2);
-  if(Math.abs(dx)<300){e.dir=dx>0?1:-1;e.x+=e.dir*(e.boss?32:45)*dt}
-  else{e.x+=e.dir*(e.boss?20:34)*dt;if(Math.abs(e.x-e.base)>e.range)e.dir*=-1}
-  if(overlap(hero,e)&&hero.inv<=0)hurt(e.boss?18:10);
- }
- for(const b of bullets){
-  b.x+=b.vx*dt;b.life-=dt;
-  for(const e of enemies){
-   if(!e.alive)continue;
-   if(b.x>e.x&&b.x<e.x+e.w&&b.y>e.y&&b.y<e.y+e.h){
-    b.life=0;e.hp-=1;e.hit=.2;
-    burst(b.x,b.y,"#49edff",7);
-    if(e.hp<=0)defeat(e);
-    break;
-   }
-  }
- }
- bullets=bullets.filter(b=>b.life>0&&b.x>cam-50&&b.x<cam+W+50);
- for(const p of pickups){
-  if(!p.taken&&overlap(hero,{x:p.x,y:p.y,w:17,h:20})){
-   p.taken=true;credits+=5;burst(p.x,p.y,"#f7cf55",5);
-  }
- }
- for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.98;p.vy+=150*dt;p.life-=dt}
- particles=particles.filter(p=>p.life>0);
- cam=clamp(hero.x-W*.36,0,worldWidth-W);
- toastTimer=Math.max(0,toastTimer-dt);
- if(!toastTimer)$("toast").textContent="";
- if(chapter===1&&hero.x>1050){
-  chapter=2;
-  say("INCOMING TRANSMISSION","UNKNOWN CALLER<br><br>„Bohaterze, myślisz, że te roboty pojawiły się przypadkiem? Twój kombinezon powstał dzięki nam”.","Sygnał prowadzi do przemysłowej części miasta. Przedzieraj się dalej.","KONTYNUUJ MISJĘ →");
-  updateHud();
- }
- if(chapter===2&&hero.x>2250){
-  chapter=3;
-  say("BOSS ENCOUNTER","SENTINEL X<br><br>„Wykryto anomalię. Cel: eliminacja”.<br><br>Ciężki robot blokuje drogę. Unikaj kontaktu i wykorzystuj ataki energetyczne.","Wskazówka: ⚡ EMP zadaje obrażenia wszystkim pobliskim wrogom.","WALCZ →");
-  updateHud();
- }
- updateHud();
+function drawHero(ground){
+let x=hero.x-camera,y=ground+hero.y;
+ctx.save();ctx.translate(x,y);if(hero.face<0)ctx.scale(-1,1);
+if(hero.invul>0&&frame%4<2)ctx.globalAlpha=.45;
+if(hero.attack>0){rect(6,-53,38,10,'#52f6ff');rect(35,-58,12,18,'#fff')}
+if(hero.dodge>0)ctx.globalAlpha=.5;
+rect(-12,-45,24,27,'#111c3b');rect(-13,-44,26,5,'#52f6ff');
+rect(-10,-61,20,18,'#e9b995');rect(-12,-66,24,9,'#ff3e81');
+rect(-8,-39,7,20,'#273a64');rect(2,-39,7,20,'#273a64');
+rect(-10,-20,8,20,'#151b31');rect(3,-20,8,20,'#151b31');
+rect(-15,-40,7,20,'#e9b995');rect(8,-40,7,20,'#e9b995');
+rect(-7,-57,5,3,'#101525');rect(3,-57,5,3,'#101525');
+rect(-17,-2,13,4,'#52f6ff');rect(3,-2,13,4,'#52f6ff');
+ctx.restore();
 }
-function glow(color,blur=14){ctx.shadowColor=color;ctx.shadowBlur=blur}
-function drawBackground(){
- const sky=ctx.createLinearGradient(0,0,0,H);
- sky.addColorStop(0,"#080d20");sky.addColorStop(.6,"#14223e");sky.addColorStop(1,"#233552");
- ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
- const sx=W*.78-cam*.06,sy=H*.22;
- glow("#3e69ff",18);ctx.fillStyle="#182c55";ctx.beginPath();ctx.arc(sx,sy,36,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
- for(const s of stars){
-  const x=((s.x-cam*.12)%W+W)%W;
-  ctx.fillStyle="#a9dfff";ctx.globalAlpha=.35+.4*Math.sin(clock*2+s.x);
-  ctx.fillRect(x,s.y,s.r,s.r);
- }
- ctx.globalAlpha=1;
- for(const b of buildings){
-  const x=b.x-cam*.28;
-  if(x+b.w<0||x>W)continue;
-  ctx.fillStyle="#101a32";ctx.fillRect(x,H*.57-b.h*.72,b.w,b.h);
-  ctx.fillStyle="#1c3150";ctx.fillRect(x+5,H*.57-b.h*.72+8,b.w-10,3);
-  for(let yy=H*.57-b.h*.72+20;yy<H*.57;yy+=19){
-   for(let xx=x+8;xx<x+b.w-5;xx+=17){
-    ctx.fillStyle=(Math.floor(xx+yy+b.seed)%4===0)?"#3bceff55":"#f0c75b35";
-    ctx.fillRect(xx,yy,5,8);
-   }
-  }
- }
- ctx.fillStyle="#0b1428";ctx.fillRect(0,ground,W,H-ground);
- ctx.fillStyle="#1b3150";ctx.fillRect(0,ground,W,5);
- glow("#26cfff",12);ctx.fillStyle="#33dfff";ctx.fillRect(0,ground,W,2);ctx.shadowBlur=0;
- for(let x=-((cam*.8)%95);x<W;x+=95){
-  ctx.fillStyle="#273f5b";ctx.fillRect(x,ground+28,48,3);
- }
- for(const p of platforms){
-  const x=p.x-cam;
-  if(x+p.w<0||x>W)continue;
-  ctx.fillStyle="#111d32";ctx.fillRect(x,p.y,p.w,p.h);
-  glow("#34dfff",10);ctx.fillStyle="#42dfff";ctx.fillRect(x,p.y,p.w,2);ctx.shadowBlur=0;
-  ctx.fillStyle="#304b69";ctx.fillRect(x+8,p.y+8,p.w-16,2);
- }
+function drawEnemy(e,ground){
+let x=e.x-camera,y=ground+e.y;
+ctx.save();ctx.translate(x,y);
+if(e.flash>0)ctx.globalAlpha=.5;
+rect(-15,-42,30,30,e.boss?'#7d254b':'#842d52');
+rect(-12,-61,24,20,e.boss?'#d76d80':'#bb7d87');
+rect(-12,-64,24,7,'#ff3e81');rect(-8,-53,5,4,'#fff');rect(3,-53,5,4,'#fff');
+rect(-13,-12,9,12,'#25223c');rect(4,-12,9,12,'#25223c');
+rect(-12,-40,24,4,'#ffb04d');
+ctx.fillStyle='#25233d';ctx.fillRect(-20,-75,40,4);
+ctx.fillStyle='#ff3e81';ctx.fillRect(-20,-75,40*Math.max(0,e.hp/e.max),4);
+ctx.restore();
 }
-function drawHero(){
- const x=hero.x-cam,y=hero.y;
- if(hero.inv>0&&Math.floor(clock*18)%2===0)return;
- const moving=Math.abs(hero.vx)>1,step=moving?Math.sin(hero.anim)*7:0;
- ctx.save();ctx.translate(x+hero.w/2,y+hero.h/2);ctx.scale(hero.face,1);
- glow("#00d9ff",14);
- ctx.fillStyle="#081522";ctx.beginPath();ctx.ellipse(0,31,19,5,0,0,Math.PI*2);ctx.fill();
- ctx.shadowBlur=0;
- // boots and articulated legs
- ctx.strokeStyle="#152d4a";ctx.lineWidth=10;ctx.lineCap="round";
- ctx.beginPath();ctx.moveTo(-7,15);ctx.lineTo(-9+step,29);ctx.lineTo(-14+step,30);ctx.moveTo(7,15);ctx.lineTo(9-step,29);ctx.lineTo(14-step,30);ctx.stroke();
- glow("#25dfff",8);ctx.strokeStyle="#42eaff";ctx.lineWidth=2;
- ctx.beginPath();ctx.moveTo(-9+step,29);ctx.lineTo(-14+step,30);ctx.moveTo(9-step,29);ctx.lineTo(14-step,30);ctx.stroke();ctx.shadowBlur=0;
- // torso
- ctx.fillStyle="#101d33";ctx.strokeStyle="#4bdfff";ctx.lineWidth=1.5;
- ctx.beginPath();ctx.moveTo(-12,-17);ctx.lineTo(11,-17);ctx.lineTo(15,9);ctx.lineTo(7,18);ctx.lineTo(-8,18);ctx.lineTo(-15,8);ctx.closePath();ctx.fill();ctx.stroke();
- ctx.fillStyle="#244a68";ctx.beginPath();ctx.moveTo(-7,-14);ctx.lineTo(7,-14);ctx.lineTo(4,6);ctx.lineTo(-4,6);ctx.closePath();ctx.fill();
- glow("#32e8ff",16);ctx.fillStyle="#76f4ff";ctx.beginPath();ctx.moveTo(0,-12);ctx.lineTo(5,-5);ctx.lineTo(0,3);ctx.lineTo(-5,-5);ctx.closePath();ctx.fill();ctx.shadowBlur=0;
- // arms
- ctx.strokeStyle="#172d48";ctx.lineWidth=8;ctx.lineCap="round";
- const armX=hero.attack>0?19:13;
- ctx.beginPath();ctx.moveTo(-11,-13);ctx.lineTo(-16,-1);ctx.lineTo(-12,8);ctx.moveTo(11,-13);ctx.lineTo(armX,-4);ctx.lineTo(armX+3,5);ctx.stroke();
- ctx.strokeStyle="#4deaff";ctx.lineWidth=2;
- ctx.beginPath();ctx.moveTo(-12,0);ctx.lineTo(-9,5);ctx.moveTo(armX,-1);ctx.lineTo(armX+3,4);ctx.stroke();
- // head
- glow("#16cfff",10);ctx.fillStyle="#172b43";ctx.strokeStyle="#4deaff";ctx.lineWidth=1.5;
- ctx.beginPath();ctx.moveTo(-10,-34);ctx.lineTo(-7,-43);ctx.lineTo(7,-43);ctx.lineTo(11,-34);ctx.lineTo(8,-23);ctx.lineTo(-7,-23);ctx.closePath();ctx.fill();ctx.stroke();
- ctx.fillStyle="#46efff";ctx.fillRect(-7,-34,14,3);ctx.shadowBlur=0;
- // shoulder armor
- ctx.fillStyle="#25496b";ctx.fillRect(-16,-17,8,7);ctx.fillRect(8,-17,8,7);
- ctx.restore();
+function render(){
+ctx.save();
+if(shake>0){ctx.translate(rand(-shake,shake),rand(-shake,shake));shake*=.85;if(shake<.3)shake=0}
+let ground=drawCity();
+if(hero){
+enemies.forEach(e=>{if(e.hp>0)drawEnemy(e,ground)});
+drawHero(ground);
+particles.forEach(p=>{ctx.globalAlpha=Math.min(1,p.life/10);rect(p.x-camera,p.y+ground,p.size,p.size,p.color);ctx.globalAlpha=1});
 }
-function drawEnemy(e){
- const x=e.x-cam,y=e.y;
- ctx.save();ctx.translate(x+e.w/2,y+e.h/2);
- const s=e.boss?1.45:1;ctx.scale(s,1);
- glow(e.boss?"#ff397f":"#ff536f",e.boss?23:12);
- ctx.fillStyle=e.boss?"#28152d":"#151c30";
- ctx.strokeStyle=e.hit>0?"#fff":e.boss?"#ff5ca2":"#ff657d";
- ctx.lineWidth=e.boss?2:1.5;
- ctx.beginPath();ctx.moveTo(-e.w*.43,-e.h*.35);ctx.lineTo(-e.w*.3,-e.h*.5);ctx.lineTo(e.w*.3,-e.h*.5);ctx.lineTo(e.w*.43,-e.h*.35);ctx.lineTo(e.w*.35,e.h*.25);ctx.lineTo(e.w*.22,e.h*.4);ctx.lineTo(-e.w*.22,e.h*.4);ctx.lineTo(-e.w*.35,e.h*.25);ctx.closePath();ctx.fill();ctx.stroke();
- ctx.fillStyle="#3a2444";ctx.fillRect(-e.w*.32,-e.h*.18,e.w*.64,e.h*.2);
- glow("#ff396d",13);ctx.fillStyle="#ff577c";ctx.fillRect(-e.w*.27,-e.h*.15,e.w*.54,e.boss?7:4);ctx.shadowBlur=0;
- ctx.fillStyle="#ff5475";ctx.fillRect(-e.w*.4,e.h*.05,5,10);ctx.fillRect(e.w*.4-5,e.h*.05,5,10);
- ctx.strokeStyle="#344763";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-8,e.h*.35);ctx.lineTo(-10,e.h*.49);ctx.moveTo(8,e.h*.35);ctx.lineTo(10,e.h*.49);ctx.stroke();
- ctx.restore();
- // enemy health
- if(e.hp<e.max||e.boss){
-  const bw=e.boss?72:42,bh=4,xx=x+e.w/2-bw/2,yy=y-12;
-  ctx.fillStyle="#382338";ctx.fillRect(xx,yy,bw,bh);
-  ctx.fillStyle=e.boss?"#ff3c91":"#ff637e";ctx.fillRect(xx,yy,bw*clamp(e.hp/e.max,0,1),bh);
- }
+ctx.restore();
+if(state==='menu'){
+ctx.fillStyle='#52f6ff';ctx.font='bold 13px Arial';ctx.fillText('MIASTO • 23:47 • SYGNAŁ ALARMOWY',18,H-25);
 }
-function draw(){
- ctx.save();
- if(shake>0){ctx.translate((Math.random()-.5)*8,(Math.random()-.5)*5);shake=Math.max(0,shake-.012)}
- drawBackground();
- // pickups
- for(const p of pickups){
-  if(p.taken)continue;
-  const x=p.x-cam;if(x<-20||x>W+20)continue;
-  const bob=Math.sin(clock*3+p.x)*3;
-  glow("#f6d25d",10);ctx.fillStyle="#f6d25d";
-  ctx.beginPath();ctx.moveTo(x+8, p.y+bob);ctx.lineTo(x+15,p.y+8+bob);ctx.lineTo(x+8,p.y+16+bob);ctx.lineTo(x+1,p.y+8+bob);ctx.closePath();ctx.fill();ctx.shadowBlur=0;
- }
- for(const e of enemies)if(e.alive)drawEnemy(e);
- for(const b of bullets){
-  glow("#37e7ff",17);ctx.fillStyle="#a5f9ff";ctx.beginPath();ctx.ellipse(b.x-cam,b.y,9,4,0,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
-  ctx.fillStyle="#35cfff";ctx.fillRect(b.x-cam-14,b.y-1,14,2);
- }
- drawHero();
- for(const p of particles){
-  ctx.globalAlpha=clamp(p.life/p.max,0,1);
-  ctx.fillStyle=p.color;ctx.fillRect(p.x-cam,p.y,p.size,p.size);
- }
- ctx.globalAlpha=1;
- // subtle vignette
- const v=ctx.createRadialGradient(W/2,H/2,H*.18,W/2,H/2,H*.8);
- v.addColorStop(0,"#00000000");v.addColorStop(1,"#02061177");
- ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
- ctx.restore();
 }
-function loop(now){
- if(!running)return;
- const dt=Math.min((now-last)/1000,.033)||0;last=now;
- update(dt);draw();
- if(running)requestAnimationFrame(loop);
-}
-resize();reset();draw();
-})();
+function loop(){update();render();requestAnimationFrame(loop)}
+loop();
 </script>
 </body>
 </html>
+</CodeBlock>
